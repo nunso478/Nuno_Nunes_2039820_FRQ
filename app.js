@@ -1,28 +1,41 @@
-//importar o express 
-const { error } = require('console');
-const { json, response } = require('express');
-const fs = require("fs");
-const { request } = require('http');
-const express = require('express');
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+
+var indexRouter = require('./routes/index');
+var usersRouter = require('./routes/users');
+
 var app = express();
-//importar o dotenv
-var dotenv = require("dotenv");
-dotenv.config();
 
-// definir a porta do servidor http
-const port = 3000
-app.use(express.json()); // get information from html forms
-app.use(express.urlencoded({ extended: true }));
-app.set('view engine', 'ejs'); // set up ejs for templating
-//require('./routes/product.js')(app);
-var productRouter = require('./routes/product.js');
-const router = require('./routes/product.js');
-app.use('/product',productRouter);
-//app.use('/test',userRouter);
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// metodo que arranca o servidor http e fica a escuta
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
 });
+
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+module.exports = app;
